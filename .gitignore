@@ -1,0 +1,4 @@
+# WordPress backup, Simply Static zip, and unzipped export (source material, too large for git)
+original/
+.DS_Store
+__pycache__/
