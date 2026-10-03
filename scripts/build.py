@@ -89,6 +89,24 @@ def relativize(text: str) -> str:
     return text
 
 
+def remove_app_links(soup: BeautifulSoup) -> None:
+    """Drop links to the retired Yomez web app (app.yomez.com no longer exists)."""
+    # Header "Login" link.
+    for el in soup.select("#top-custom-link-widget"):
+        el.decompose()
+    # "Create Account" buttons (each alone in its row) and button images.
+    for a in soup.find_all("a", href=re.compile(r"^https?://app\.yomez\.com")):
+        if a.decomposed:
+            continue
+        row = a.find_parent("div", class_="vc_row")
+        if row and len(row.find_all("a")) == 1:
+            row.decompose()
+        elif a.find_parent("figure"):
+            a.find_parent("figure").decompose()
+        else:
+            a.unwrap()  # keep any link text, drop the dead link
+
+
 def clean(html: str) -> str:
     soup = BeautifulSoup(html, "html.parser")
 
@@ -103,6 +121,7 @@ def clean(html: str) -> str:
     # Comments.
     for el in soup.select("#respond, #comments, .comments-area, .comment-respond"):
         el.decompose()
+    remove_app_links(soup)
 
     drop_asset = re.compile(r"everest-forms|wp-captcha|c4wp|recaptcha|intlTelInput|comment-reply")
     for el in soup.find_all(["script", "link"]):
